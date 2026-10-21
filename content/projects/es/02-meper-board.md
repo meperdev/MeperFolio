@@ -7,5 +7,5 @@ stack:
   - Tailwind CSS
 logo: meperboard
 url: https://board.mepersoft.app
-repo: https://github.com/MeperDonas/MeperBoard
+repo: https://github.com/meperdev/MeperBoard
 ---

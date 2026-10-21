@@ -3,7 +3,7 @@ name: Santiago Villabona
 role: Desarrollador Junior
 email: santiago.villabona.aponte@gmail.com
 linkedin: https://www.linkedin.com/in/santiago-villabona-aponte/
-github: https://github.com/MeperDonas
+github: https://github.com/meperdev
 cv: /cv/cv-es.pdf
 nav:
   about: Sobre mí

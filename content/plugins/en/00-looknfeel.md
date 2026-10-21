@@ -4,7 +4,7 @@ description: "Tune Hyprland's look'n'feel from the bar: opacity of the focused w
 version: 1.1.0
 kind: bar-widget
 id: meperdonas.looknfeel
-repo: https://github.com/MeperDonas/omarchy-looknfeel
+repo: https://github.com/meperdev/omarchy-looknfeel
 marketplace: https://plugins.omarchy.org/plugin.html?id=meperdonas.looknfeel
 preview: /plugins/looknfeel.webp
 ---
