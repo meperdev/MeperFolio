@@ -7,5 +7,5 @@ stack:
   - TypeScript
 logo: meperfolio
 url: https://folio.mepersoft.app
-repo: https://github.com/MeperDonas/MeperFolio
+repo: https://github.com/meperdev/MeperFolio
 ---

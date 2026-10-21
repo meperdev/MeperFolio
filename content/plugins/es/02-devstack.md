@@ -4,7 +4,7 @@ description: "Un icono en la barra por cada stack local: levanta, vigila y baja 
 version: 1.10.4
 kind: bar-widget
 id: meperdonas.devstack
-repo: https://github.com/MeperDonas/omarchy-devstack
+repo: https://github.com/meperdev/omarchy-devstack
 marketplace: https://plugins.omarchy.org/plugin.html?id=meperdonas.devstack
 preview: /plugins/devstack.webp
 ---

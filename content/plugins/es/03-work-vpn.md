@@ -4,7 +4,7 @@ description: "VPN, escritorio remoto y Teams para la jornada laboral, en un solo
 version: 1.2.0
 kind: bar-widget
 id: meperdonas.work-vpn
-repo: https://github.com/MeperDonas/omarchy-work-vpn
+repo: https://github.com/meperdev/omarchy-work-vpn
 marketplace: https://plugins.omarchy.org/plugin.html?id=meperdonas.work-vpn
 preview: /plugins/work-connection.webp
 ---

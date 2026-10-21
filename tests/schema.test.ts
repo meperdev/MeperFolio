@@ -82,11 +82,11 @@ describe('content schemas', () => {
       description: 'Inventory app',
       stack: ['Next.js'],
       url: 'https://gestion-inventario-app-navy.vercel.app',
-      repo: 'https://github.com/MeperDonas/MeperPOS',
+      repo: 'https://github.com/meperdev/MeperPOS',
     });
 
     expect(result.success).toBe(true);
-    expect(result.data?.repo).toBe('https://github.com/MeperDonas/MeperPOS');
+    expect(result.data?.repo).toBe('https://github.com/meperdev/MeperPOS');
     expect(result.data?.url).toBe('https://gestion-inventario-app-navy.vercel.app');
   });
 
@@ -186,7 +186,7 @@ describe('content schemas', () => {
       description: 'Local dev stacks in one bar icon.',
       version: '1.10.3',
       kind: 'bar-widget',
-      repo: 'https://github.com/MeperDonas/omarchy-devstack',
+      repo: 'https://github.com/meperdev/omarchy-devstack',
     });
 
     expect(result.success).toBe(true);
@@ -198,7 +198,7 @@ describe('content schemas', () => {
       description: 'Local dev stacks in one bar icon.',
       version: '1.10.3',
       kind: 'bar-widget',
-      repo: 'https://github.com/MeperDonas/omarchy-devstack',
+      repo: 'https://github.com/meperdev/omarchy-devstack',
       preview: '/plugins/devstack.png',
     });
 
@@ -212,7 +212,7 @@ describe('content schemas', () => {
       description: 'Local dev stacks in one bar icon.',
       version: '1.10.3',
       kind: 'bar-widget',
-      repo: 'https://github.com/MeperDonas/omarchy-devstack',
+      repo: 'https://github.com/meperdev/omarchy-devstack',
       id: 'meperdonas.devstack',
     });
 
@@ -226,7 +226,7 @@ describe('content schemas', () => {
       description: 'Local dev stacks in one bar icon.',
       version: '1.10.3',
       kind: 'bar-widget',
-      repo: 'MeperDonas/omarchy-devstack',
+      repo: 'meperdev/omarchy-devstack',
     });
 
     expect(result.success).toBe(false);

@@ -6,6 +6,6 @@ stack:
   - TypeScript
   - Tailwind CSS
   - Recharts
-url: https://github.com/MeperDonas/vidmetrics-pulse-app
-repo: https://github.com/MeperDonas/vidmetrics-pulse-app
+url: https://github.com/meperdev/vidmetrics-pulse-app
+repo: https://github.com/meperdev/vidmetrics-pulse-app
 ---

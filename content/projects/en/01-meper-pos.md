@@ -9,5 +9,5 @@ stack:
   - TypeScript
 logo: meperpos
 url: https://pos.mepersoft.app
-repo: https://github.com/MeperDonas/MeperPOS
+repo: https://github.com/meperdev/MeperPOS
 ---
