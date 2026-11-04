@@ -1,7 +1,7 @@
 ---
 title: devstack
-description: "Un icono en la barra por cada stack local: levanta, vigila y baja servicios de Docker y servidores de desarrollo, en orden, con estado de cuatro colores, botón para tomar control de puertos ocupados por procesos sueltos y un detector que propone el stack de cualquier repositorio."
-version: 1.10.4
+description: "Stacks de desarrollo locales en la barra de Omarchy: un icono por proyecto o uno agregado, estado y propiedad por servicio, levantar/bajar/abrir/logs/reiniciar, un stack por worktree de git con puertos y variables de entorno por copia, servicios Docker compartidos por repo, botón para parar todo, buscador de repos no declarados y servidor MCP para que los agentes de código manejen los stacks."
+version: 1.14.0
 kind: bar-widget
 id: meperdonas.devstack
 repo: https://github.com/meperdev/omarchy-devstack
