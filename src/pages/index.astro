@@ -138,9 +138,14 @@ const cvFileEn = en.data.cv?.split('/').pop() ?? '';
     lg:h-full children resolve against a circular height (content-sized), the
     deck never overflows internally and main clips it to one viewport with no
     scroll. minmax(0,1fr) gives a definite 100vh row so the deck really scrolls.
+
+    main deliberately does NOT clip its overflow: the deck extends its hit area
+    through the outer right gutter (see [data-scroll-root] in global.css), and
+    clipping here would turn that extension into dead space again. The body's
+    lg:overflow-hidden keeps the page itself from scrolling.
   -->
   <main
-    class="relative mx-auto max-w-7xl lg:grid lg:h-screen lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-20 lg:overflow-hidden"
+    class="relative mx-auto max-w-7xl lg:grid lg:h-screen lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:grid-rows-[minmax(0,1fr)] lg:gap-20"
   >
     <!--
       One cluster for every page-level control: the palette trigger, the language

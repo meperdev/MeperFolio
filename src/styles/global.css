@@ -604,6 +604,18 @@
     width: 100%;
     padding-block: clamp(1.5rem, 4vh, 3rem);
   }
+
+  /* The deck is the only scroller on lg+, but the split keeps its content
+     inside the centered max-w-7xl grid: past that edge the pointer sat on
+     plain body and the wheel did nothing. Extend the scroller's box through
+     the outer right gutter, up to the viewport edge, and give the same width
+     back as padding so every section keeps its exact position and measure.
+     main must not clip (see index.astro); the body still clips at 100vw. */
+  [data-scroll-root] {
+    --deck-gutter: max(0px, calc((100vw - 80rem) / 2));
+    margin-right: calc(var(--deck-gutter) * -1);
+    padding-right: calc(2.5rem + var(--deck-gutter));
+  }
 }
 
 /* ---------------------------------------------------------------------------
