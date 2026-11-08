@@ -516,6 +516,40 @@ describe.runIf(hasBrowser)('rendered appearance', () => {
     },
     TEST_TIMEOUT,
   );
+
+  it(
+    'keeps the wheel scrolling over the outer right gutter',
+    async () => {
+      // 1920px leaves a 320px band between the centered max-w-7xl grid and the
+      // viewport edge. That band used to be plain body: the deck stopped at the
+      // grid edge, so the wheel died as soon as the pointer cleared the content.
+      const wide = { width: 1920, height: 1080 };
+      const page = await openSite(wide);
+
+      const deckRight = await page.$eval(
+        '[data-scroll-root]',
+        (el) => el.getBoundingClientRect().right,
+      );
+      expect(Math.round(deckRight), 'the deck must reach the viewport edge').toBe(wide.width);
+      expect(
+        await page.evaluate(
+          () => !!document.elementFromPoint(window.innerWidth - 2, 400)?.closest('[data-scroll-root]'),
+        ),
+        'the viewport edge must belong to the deck',
+      ).toBe(true);
+
+      await page.mouse.move(wide.width - 2, 400);
+      await page.mouse.wheel({ deltaY: 400 });
+      await new Promise((resolve) => setTimeout(resolve, 350));
+      expect(
+        await page.$eval('[data-scroll-root]', (el) => el.scrollTop),
+        'a wheel over the gutter must scroll the deck',
+      ).toBeGreaterThan(0);
+
+      await page.close();
+    },
+    TEST_TIMEOUT,
+  );
 });
 
 if (!hasBrowser) {
