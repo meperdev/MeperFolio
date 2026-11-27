@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
  * pulling in `@types/node`.
  */
 const appAssets = Object.keys(
-  import.meta.glob('../public/apps/**/*.png', { eager: true, query: '?url' }),
+  import.meta.glob('../public/apps/**/*.webp', { eager: true, query: '?url' }),
 );
 const pluginAssets = Object.keys(
   import.meta.glob('../public/plugins/**/*', { eager: true, query: '?url' }),
@@ -48,16 +48,24 @@ const entries = (files: Record<string, string>): [string, Record<string, string>
   Object.entries(files).map(([path, raw]) => [path, frontmatter(raw)]);
 
 describe('content assets', () => {
-  it('resolves every project logo to a real dark and light lockup', () => {
+  it('resolves every project logo to a real icon cover', () => {
     const missing: string[] = [];
     for (const [path, fm] of entries(projectFiles)) {
       if (!fm.logo) continue;
-      for (const variant of ['lockup-dark.png', 'lockup-light.png']) {
-        const wanted = `public/apps/${fm.logo}/${variant}`;
-        if (!appAssets.some((key) => key.endsWith(wanted))) missing.push(`${path} -> ${wanted}`);
-      }
+      const wanted = `public/apps/${fm.logo}/icon.webp`;
+      if (!appAssets.some((key) => key.endsWith(wanted))) missing.push(`${path} -> ${wanted}`);
     }
     expect(missing).toEqual([]);
+  });
+
+  it('gives every project a valid category (app or web)', () => {
+    const bad: string[] = [];
+    for (const [path, fm] of entries(projectFiles)) {
+      if (fm.category !== 'app' && fm.category !== 'web') {
+        bad.push(`${path}: ${fm.category ?? 'missing'}`);
+      }
+    }
+    expect(bad).toEqual([]);
   });
 
   it('resolves every plugin preview to a real file', () => {

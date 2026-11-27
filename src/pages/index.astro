@@ -6,7 +6,6 @@ import SiteNav from '../components/SiteNav.astro';
 import About from '../components/About.astro';
 import Experience from '../components/Experience.astro';
 import Projects from '../components/Projects.astro';
-import Plugins from '../components/Plugins.astro';
 import Certifications from '../components/Certifications.astro';
 import {
   getAbout,
@@ -89,6 +88,18 @@ for (const [repo, count] of starCounts) {
   if (count !== null) starsByRepo[repo] = count;
 }
 
+const sortById = <T extends { id: string }>(entries: T[]): T[] =>
+  [...entries].sort((a, b) => a.id.localeCompare(b.id));
+
+const sortedProjectsEs = sortById(projectsEs);
+const sortedProjectsEn = sortById(projectsEn);
+const appsEs = sortedProjectsEs.filter((entry) => entry.data.category !== 'web');
+const websEs = sortedProjectsEs.filter((entry) => entry.data.category === 'web');
+const appsEn = sortedProjectsEn.filter((entry) => entry.data.category !== 'web');
+const websEn = sortedProjectsEn.filter((entry) => entry.data.category === 'web');
+const sortedPluginsEs = sortById(pluginsEs);
+const sortedPluginsEn = sortById(pluginsEn);
+
 // Empty-shell suppression (spec REQ-01 "Empty section"): each locale's section
 // block renders only when that locale has at least one entry. The outer anchor
 // wrapper renders only when at least one locale has content.
@@ -96,10 +107,8 @@ const hasAboutEs = aboutEs.length > 0;
 const hasAboutEn = aboutEn.length > 0;
 const hasExperienceEs = experienceEs.length > 0;
 const hasExperienceEn = experienceEn.length > 0;
-const hasProjectsEs = projectsEs.length > 0;
-const hasProjectsEn = projectsEn.length > 0;
-const hasPluginsEs = pluginsEs.length > 0;
-const hasPluginsEn = pluginsEn.length > 0;
+const hasProjectsEs = sortedProjectsEs.length > 0 || sortedPluginsEs.length > 0;
+const hasProjectsEn = sortedProjectsEn.length > 0 || sortedPluginsEn.length > 0;
 const hasCertificationsEs = certificationsEs.length > 0;
 const hasCertificationsEn = certificationsEn.length > 0;
 
@@ -107,13 +116,12 @@ const hasCertificationsEn = certificationsEn.length > 0;
 // empty-shell suppression above), so every nav link has a real deck target.
 const navSections: {
   id: string;
-  key: 'about' | 'experience' | 'projects' | 'plugins' | 'certifications';
+  key: 'about' | 'experience' | 'projects' | 'certifications';
   available: boolean;
 }[] = [
   { id: 'about', key: 'about', available: hasAboutEs || hasAboutEn },
   { id: 'experience', key: 'experience', available: hasExperienceEs || hasExperienceEn },
   { id: 'projects', key: 'projects', available: hasProjectsEs || hasProjectsEn },
-  { id: 'plugins', key: 'plugins', available: hasPluginsEs || hasPluginsEn },
   { id: 'certifications', key: 'certifications', available: hasCertificationsEs || hasCertificationsEn },
 ];
 const availableNavSections = navSections.filter((section) => section.available).map(({ id, key }) => ({ id, key }));
@@ -257,8 +265,8 @@ const cvFileEn = en.data.cv?.split('/').pop() ?? '';
          lg+ (see .identity-col in global.css): vh-driven clamps compress the
          content on short viewports and overflow:hidden guarantees it never
          scrolls internally. -->
-    <aside class="identity-col flex flex-col px-6 pb-8 pt-8 lg:h-full lg:min-h-0 lg:overflow-hidden lg:px-10 lg:py-10">
-      <div class="hero-wrap mt-10 lg:mt-14">
+    <aside class="identity-col flex flex-col px-6 pb-4 pt-6 lg:h-full lg:min-h-0 lg:overflow-hidden lg:px-10 lg:py-10">
+      <div class="hero-wrap mt-2 lg:mt-0">
         <Hero
           locale="es"
           name={es.data.name}
@@ -303,7 +311,7 @@ const cvFileEn = en.data.cv?.split('/').pop() ?? '';
         <div
           id="experience"
           data-section
-          class="deck-section lg:flex lg:min-h-full lg:flex-col"
+          class="deck-section lg:flex lg:flex-col"
         >
           {hasExperienceEs && (
             <Experience
@@ -331,21 +339,33 @@ const cvFileEn = en.data.cv?.split('/').pop() ?? '';
         <div
           id="projects"
           data-section
-          class="deck-section lg:flex lg:min-h-full lg:flex-col"
+          class="deck-section lg:flex lg:flex-col"
         >
-          {hasProjectsEs && <Projects locale="es" index={sectionIndex.get('projects') ?? '03'} title={es.data.nav.projects} entries={projectsEs} stars={starsByRepo} />}
-          {hasProjectsEn && <Projects locale="en" index={sectionIndex.get('projects') ?? '03'} title={en.data.nav.projects} entries={projectsEn} stars={starsByRepo} hidden />}
-        </div>
-      )}
-
-      {(hasPluginsEs || hasPluginsEn) && (
-        <div
-          id="plugins"
-          data-section
-          class="deck-section lg:flex lg:min-h-full lg:flex-col"
-        >
-          {hasPluginsEs && <Plugins locale="es" index={sectionIndex.get('plugins') ?? '04'} title={es.data.nav.plugins} entries={pluginsEs} />}
-          {hasPluginsEn && <Plugins locale="en" index={sectionIndex.get('plugins') ?? '04'} title={en.data.nav.plugins} entries={pluginsEn} hidden />}
+          {hasProjectsEs && (
+            <Projects
+              locale="es"
+              index={sectionIndex.get('projects') ?? '03'}
+              title={es.data.nav.projects}
+              apps={appsEs}
+              webs={websEs}
+              plugins={sortedPluginsEs}
+              pluginsLabel={es.data.nav.plugins}
+              stars={starsByRepo}
+            />
+          )}
+          {hasProjectsEn && (
+            <Projects
+              locale="en"
+              index={sectionIndex.get('projects') ?? '03'}
+              title={en.data.nav.projects}
+              apps={appsEn}
+              webs={websEn}
+              plugins={sortedPluginsEn}
+              pluginsLabel={en.data.nav.plugins}
+              stars={starsByRepo}
+              hidden
+            />
+          )}
         </div>
       )}
 
@@ -353,12 +373,12 @@ const cvFileEn = en.data.cv?.split('/').pop() ?? '';
         <div
           id="certifications"
           data-section
-          class="deck-section lg:flex lg:min-h-full lg:flex-col"
+          class="deck-section lg:flex lg:flex-col"
         >
           {hasCertificationsEs && (
             <Certifications
               locale="es"
-              index={sectionIndex.get('certifications') ?? '05'}
+              index={sectionIndex.get('certifications') ?? '04'}
               title={es.data.nav.certifications}
               entries={certificationsEs}
             />
@@ -366,7 +386,7 @@ const cvFileEn = en.data.cv?.split('/').pop() ?? '';
           {hasCertificationsEn && (
             <Certifications
               locale="en"
-              index={sectionIndex.get('certifications') ?? '05'}
+              index={sectionIndex.get('certifications') ?? '04'}
               title={en.data.nav.certifications}
               entries={certificationsEn}
               hidden
@@ -378,18 +398,20 @@ const cvFileEn = en.data.cv?.split('/').pop() ?? '';
       <!-- Colophon: closes the page; not a snap point, so it can never trap
             the end of the deck. Both locale copies follow the data-locale pattern. -->
       <footer class="px-6">
-        <div
-          class="flex flex-col gap-3 border-t border-hairline pb-14 pt-8 sm:flex-row sm:items-center sm:justify-between"
-          data-reveal
-        >
-          <p class="text-xs text-ink-subtle">
-            <span data-locale="es">© {year} {es.data.name}. Diseñado y desarrollado con Astro y Tailwind CSS.</span>
-            <span data-locale="en" hidden>© {year} {en.data.name}. Designed and built with Astro and Tailwind CSS.</span>
+        <div class="flex items-center justify-between gap-4 border-t border-hairline py-6">
+          <p class="font-mono text-xs text-ink-subtle">
+            <span data-locale="es">© {year} {es.data.name}</span>
+            <span data-locale="en" hidden>© {year} {en.data.name}</span>
           </p>
-          <a href={`mailto:${es.data.email}`} class="link-underline w-fit text-xs font-medium text-ink-subtle">
-            <span data-locale="es">{es.data.nav.contact}</span>
-            <span data-locale="en" hidden>{en.data.nav.contact}</span>
-          </a>
+          <button
+            type="button"
+            data-cmdk-open
+            class="inline-flex items-center gap-2 font-mono text-xs text-ink-subtle transition-colors duration-200 hover:text-primary"
+          >
+            <kbd class="border border-hairline bg-surface-1 px-1.5 py-0.5 text-[10px] text-ink-tertiary">Ctrl+K</kbd>
+            <span data-locale="es">Comandos</span>
+            <span data-locale="en" hidden>Commands</span>
+          </button>
         </div>
       </footer>
     </div>

@@ -5,7 +5,6 @@ export interface NavLabels {
   about: string;
   experience: string;
   projects: string;
-  plugins: string;
   certifications: string;
 }
 
@@ -28,7 +27,7 @@ const { nav, items } = Astro.props;
   list with an animated indicator rail on lg+. src/scripts/app.ts drives the
   indicator position, the active state, and the smooth scroll-on-click.
 -->
-<nav data-split-nav class="split-nav mt-10 lg:mt-14" aria-label="Primary">
+<nav data-split-nav class="split-nav mt-7 lg:mt-14" aria-label="Primary">
   {/*
     Below lg this row is horizontal, and it is centred to match the hero, which is
     centred too. The scroller and the centring need separate elements: a centred flex
@@ -38,16 +37,16 @@ const { nav, items } = Astro.props;
     correct scrolling) once it does not. lg turns it back into the vertical list.
   */}
   <div class="overflow-x-auto pb-1 lg:overflow-visible lg:pb-0">
-    <ul class="mx-auto flex w-max items-center gap-6 lg:mx-0 lg:block lg:w-auto lg:gap-0">
+    <ul class="mx-auto flex w-max items-center gap-4 sm:gap-6 lg:mx-0 lg:block lg:w-auto lg:gap-0">
     {
       items.map(({ id, key }, i) => (
         <li data-nav-item={id} class="shrink-0 lg:shrink">
           <a
             href={`#${id}`}
             data-scroll-to={id}
-            class="flex items-baseline gap-3 whitespace-nowrap py-2 text-sm font-medium tracking-[0.2px] text-ink-subtle transition-colors duration-200 hover:text-ink lg:py-2.5"
+            class="flex items-baseline gap-2.5 whitespace-nowrap py-2 text-xs font-medium tracking-[0.2px] text-ink-subtle transition-colors duration-200 hover:text-ink sm:gap-3 sm:text-sm lg:py-2.5"
           >
-            <span class="nav-index" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <span class="nav-index hidden sm:inline" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
             <span>
               <span data-locale="es">{nav.es[key]}</span>
               <span data-locale="en" hidden>{nav.en[key]}</span>

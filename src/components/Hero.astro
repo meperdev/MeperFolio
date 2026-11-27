@@ -24,29 +24,29 @@ const cvLabel = locale === 'es' ? 'Ver CV' : 'View CV';
     width="1280"
     height="1163"
     data-reveal
-    class="avatar hero-avatar h-52 w-52"
+    class="avatar hero-avatar h-36 w-36 sm:h-44 sm:w-44"
   />
 
-  <p class="section-eyebrow mt-8" data-reveal>{role}</p>
-  <h1 class="identity-name mt-4 text-display-xl text-ink" data-reveal>{name}</h1>
+  <p class="section-eyebrow mt-5" data-reveal>{role}</p>
+  <h1 class="identity-name mt-3 text-display-xl text-ink" data-reveal>{name}</h1>
 
-  <p class="terminal-chip mt-7" data-reveal>
+  <p class="terminal-chip mt-5" data-reveal>
     <span class="prompt" aria-hidden="true">&gt;</span>
     <span class="terminal-text"></span><span class="cursor-block" aria-hidden="true"></span>
   </p>
 
-  <p class="mt-10 text-[13px] font-medium uppercase tracking-[0.4px] text-ink-subtle" data-reveal>
+  <p class="mt-6 text-[13px] font-medium uppercase tracking-[0.4px] text-ink-subtle" data-reveal>
     {locale === 'es' ? 'Contacto' : 'Contact'}
   </p>
 
-  <div class="mt-4 flex items-center justify-center gap-6 lg:justify-start" data-reveal>
+  <div class="mt-2.5 flex items-center justify-center gap-2 lg:-ml-2 lg:justify-start" data-reveal>
     <a
       href={`mailto:${email}`}
       aria-label="Email"
-      class="group text-ink-subtle transition-colors duration-200 hover:text-primary-hover"
+      class="inline-flex size-9 items-center justify-center border border-transparent text-ink-subtle transition-colors duration-200 hover:border-hairline-strong hover:bg-surface-1 hover:text-primary"
     >
       <svg
-        class="h-[22px] w-[22px] transition-transform duration-200 ease-out-expo group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(94,106,210,0.35)]"
+        class="size-5"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -64,10 +64,10 @@ const cvLabel = locale === 'es' ? 'Ver CV' : 'View CV';
       target="_blank"
       rel="noopener noreferrer"
       aria-label="LinkedIn"
-      class="group text-ink-subtle transition-colors duration-200 hover:text-primary-hover"
+      class="inline-flex size-9 items-center justify-center border border-transparent text-ink-subtle transition-colors duration-200 hover:border-hairline-strong hover:bg-surface-1 hover:text-primary"
     >
       <svg
-        class="h-[22px] w-[22px] transition-transform duration-200 ease-out-expo group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(94,106,210,0.35)]"
+        class="size-5"
         viewBox="0 0 24 24"
         fill="currentColor"
         aria-hidden="true"
@@ -80,10 +80,10 @@ const cvLabel = locale === 'es' ? 'Ver CV' : 'View CV';
       target="_blank"
       rel="noopener noreferrer"
       aria-label="GitHub"
-      class="group text-ink-subtle transition-colors duration-200 hover:text-primary-hover"
+      class="inline-flex size-9 items-center justify-center border border-transparent text-ink-subtle transition-colors duration-200 hover:border-hairline-strong hover:bg-surface-1 hover:text-primary"
     >
       <svg
-        class="h-[22px] w-[22px] transition-transform duration-200 ease-out-expo group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(94,106,210,0.35)]"
+        class="size-5"
         viewBox="0 0 24 24"
         fill="currentColor"
         aria-hidden="true"
@@ -96,10 +96,10 @@ const cvLabel = locale === 'es' ? 'Ver CV' : 'View CV';
         type="button"
         data-cv-open
         aria-label={cvLabel}
-        class="group text-ink-subtle transition-colors duration-200 hover:text-primary-hover"
+        class="inline-flex size-9 items-center justify-center border border-transparent text-ink-subtle transition-colors duration-200 hover:border-hairline-strong hover:bg-surface-1 hover:text-primary"
       >
         <svg
-          class="h-[22px] w-[22px] transition-transform duration-200 ease-out-expo group-hover:scale-110 group-hover:drop-shadow-[0_0_8px_rgba(94,106,210,0.35)]"
+          class="size-5"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"

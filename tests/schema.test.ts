@@ -62,6 +62,26 @@ describe('content schemas', () => {
     });
 
     expect(result.success).toBe(true);
+    expect(result.data?.category).toBe('app');
+  });
+
+  it('accepts web as a project category and rejects unknown categories', () => {
+    const web = projectsSchema.safeParse({
+      title: 'A y G Negocios Internacionales',
+      description: 'Corporate website',
+      category: 'web',
+      stack: ['Next.js'],
+    });
+    const invalid = projectsSchema.safeParse({
+      title: 'Invalid',
+      description: 'Bad category',
+      category: 'desktop',
+      stack: ['Astro'],
+    });
+
+    expect(web.success).toBe(true);
+    expect(web.data?.category).toBe('web');
+    expect(invalid.success).toBe(false);
   });
 
   it('keeps the logo slug on a project entry so the card can resolve its cover', () => {

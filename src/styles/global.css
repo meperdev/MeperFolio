@@ -98,9 +98,8 @@
 
   --spacing-section: 96px;
 
-  /* Motion: out-expo for reveals/position changes, spring for small pops. */
+  /* Motion: out-expo for reveals and position changes. */
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @layer base {
@@ -263,15 +262,7 @@
   }
 }
 
-/* Project cards: numbered editorial cards with an outlined link chip. */
-.project-index {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-ink-tertiary);
-}
-
+/* Outlined external link chip (used in Certifications). */
 .project-link {
   display: inline-flex;
   align-items: center;
@@ -300,48 +291,6 @@
 
 .project-link:hover svg {
   transform: translate(2px, -2px);
-}
-
-/* Project cards carry their lead tech's hue as --card-accent: the oversized
-   ghost index tints on hover and the border warms toward the same color. */
-.project-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.project-card:hover {
-  border-color: color-mix(in oklch, var(--color-primary) 45%, transparent);
-}
-
-@supports (color: color-mix(in srgb, red, blue)) {
-  .project-card:hover {
-    border-color: color-mix(in srgb, var(--card-accent, var(--color-primary)) 45%, transparent);
-  }
-}
-
-.project-ghost {
-  pointer-events: none;
-  user-select: none;
-  position: absolute;
-  right: -8px;
-  bottom: -22px;
-  font-family: var(--font-mono);
-  font-size: 7.5rem;
-  line-height: 1;
-  font-weight: 600;
-  letter-spacing: -0.05em;
-  color: var(--color-ghost);
-  transition: color 0.3s ease;
-}
-
-.project-card:hover .project-ghost {
-  color: color-mix(in oklch, var(--color-primary) 9%, transparent);
-}
-
-@supports (color: color-mix(in srgb, red, blue)) {
-  .project-card:hover .project-ghost {
-    color: color-mix(in srgb, var(--card-accent, var(--color-primary)) 14%, transparent);
-  }
 }
 
 /* Certifications: credential ledger rows, distinct from project cards.
@@ -418,13 +367,6 @@
   }
 }
 
-/* Smaller ghost index for the short ledger rows. */
-.cred-ghost {
-  right: -4px;
-  bottom: -12px;
-  font-size: 4.25rem;
-}
-
 .cred-date {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -493,6 +435,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 26ch;
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-md);
   background: var(--color-surface-1);
@@ -528,30 +471,16 @@
  */
 .js [data-reveal] {
   opacity: 0;
-  transform: translateY(32px);
+  transform: translateY(12px);
   transition:
-    opacity 0.45s var(--ease-out-expo),
-    transform 0.45s var(--ease-out-expo);
+    opacity 0.32s var(--ease-out-expo),
+    transform 0.32s var(--ease-out-expo);
   transition-delay: var(--reveal-delay, 0ms);
 }
 
 .js [data-reveal].is-visible {
   opacity: 1;
   transform: none;
-}
-
-/* Cards enter with a slight scale so grid batches read as a wave. Gated on
-   `:not(.is-visible)`: at equal specificity the later rule would otherwise win
-   over `.is-visible`'s `transform: none` and freeze every card mid-entrance —
-   permanently 3% smaller and 38px lower than the grid it lives in. */
-.js [data-reveal].reveal-card:not(.is-visible) {
-  transform: translateY(38px) scale(0.97);
-}
-
-/* Headings travel further for a clear hierarchical beat. */
-.js h1[data-reveal],
-.js h2[data-reveal] {
-  transform: translateY(44px);
 }
 
 /* Deck sections vertically center their content; tone down the components'
@@ -564,6 +493,39 @@
    background wash (DESIGN-omarchy.md Layout). */
 .deck-section + .deck-section {
   border-top: 1px solid var(--color-hairline);
+}
+
+/* Project category tabs (Apps | Webs | Plugins). Sharp 0px geometry, hairline
+   base rule and primary bottom underline on the active tab. */
+.project-tab {
+  position: relative;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-ink-subtle);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.project-tab:hover {
+  color: var(--color-ink);
+  background: var(--color-surface-1);
+}
+
+.project-tab[aria-selected='true'] {
+  color: var(--color-ink);
+  border-bottom-color: var(--color-primary);
+  background: var(--color-surface-1);
+}
+
+.project-tab-count {
+  font-size: 10px;
+  color: var(--color-ink-tertiary);
+}
+
+.project-tab[aria-selected='true'] .project-tab-count {
+  color: var(--color-primary);
 }
 
 /* Paged project frame. Every page sits in the same grid cell, so the container
@@ -602,7 +564,7 @@
 
   .deck-section > section {
     width: 100%;
-    padding-block: clamp(1.5rem, 4vh, 3rem);
+    padding-block: clamp(2.5rem, 6vh, 4rem);
   }
 
   /* The deck is the only scroller on lg+, but the split keeps its content
@@ -701,28 +663,26 @@
     justify-content: safe center;
   }
 
-  /* Centered and larger on desktop: margin auto centers it over the
-     left-aligned text column without moving the text itself. */
+  /* Left-aligned on desktop so the avatar shares the text & nav axis. */
   .hero-avatar {
-    margin-inline: auto;
-    width: clamp(150px, 24vh, 248px);
-    height: clamp(150px, 24vh, 248px);
+    width: clamp(112px, 18vh, 176px);
+    height: clamp(112px, 18vh, 176px);
   }
 
   .identity-name {
-    font-size: clamp(2.4rem, 7.4vh, 5rem);
+    font-size: clamp(2.4rem, 7.2vh, 4.75rem);
   }
 
   .hero-stack > * + * {
-    margin-top: clamp(14px, 2.6vh, 30px);
+    margin-top: clamp(12px, 2.2vh, 24px);
   }
 
   .hero-wrap {
-    margin-top: clamp(18px, 3.4vh, 52px);
+    margin-top: 0;
   }
 
   .identity-col .split-nav {
-    margin-top: clamp(18px, 3vh, 40px);
+    margin-top: clamp(18px, 3vh, 36px);
   }
 
   .identity-col .split-nav a {
@@ -733,52 +693,29 @@
 /* Short-viewports tier: compress further so everything fits without scroll. */
 @media (min-width: 1024px) and (max-height: 760px) {
   .hero-avatar {
-    width: clamp(120px, 19vh, 184px);
-    height: clamp(120px, 19vh, 184px);
+    width: clamp(96px, 15vh, 140px);
+    height: clamp(96px, 15vh, 140px);
   }
 
   .identity-name {
-    font-size: clamp(2.1rem, 6.6vh, 4rem);
+    font-size: clamp(2.1rem, 6.4vh, 3.75rem);
   }
 
   .hero-stack > * + * {
-    margin-top: clamp(10px, 2vh, 22px);
+    margin-top: clamp(10px, 1.8vh, 18px);
   }
 
   .hero-wrap {
-    margin-top: clamp(12px, 2.4vh, 32px);
+    margin-top: 0;
   }
 
   .identity-col .split-nav {
-    margin-top: clamp(14px, 3vh, 40px);
+    margin-top: clamp(14px, 2.5vh, 30px);
   }
 
   .identity-col .split-nav a {
     padding-block: 5px;
   }
-}
-
-/* Film-grain texture overlay: a tiny tiled SVG turbulence noise that adds
-   tactile depth to the near-black canvas. Static by design (zero animation
-   cost) and faint enough to stay out of the content's way. */
-.grain-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 41; /* above content and mouse glow (40), below the CV modal (60) */
-  pointer-events: none;
-  opacity: 0.055;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
-  background-size: 160px 160px;
-}
-
-/* Mouse-reactive background glow (fixed overlay, position updated by app.ts).
- * Deliberately faint so it stays atmospheric instead of becoming the
- * spotlight-card effect the canon forbids. */
-.mouse-glow {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  pointer-events: none;
 }
 
 /* ---------------------------------------------------------------------------
@@ -937,7 +874,7 @@
 .timeline-dot {
   transform: scale(0);
   box-shadow: 0 0 0 4px color-mix(in oklch, var(--color-primary) 16%, transparent);
-  transition: transform 0.45s var(--ease-spring) 0.35s;
+  transition: transform 0.35s var(--ease-out-expo) 0.2s;
 }
 
 [data-reveal].is-visible .timeline-dot {
@@ -1208,5 +1145,9 @@
   .cmdk-panel,
   .cmdk-backdrop {
     animation: none;
+  }
+
+  .project-tab {
+    transition: none;
   }
 }

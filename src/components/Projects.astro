@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import Plugins from './Plugins.astro';
 import type { Locale } from '../lib/i18n';
 import { tagHue } from '../lib/tags';
 
@@ -7,23 +8,28 @@ interface Props {
   locale: Locale;
   index: string;
   title: string;
-  entries: CollectionEntry<'projects'>[];
+  apps: CollectionEntry<'projects'>[];
+  webs: CollectionEntry<'projects'>[];
+  plugins: CollectionEntry<'plugins'>[];
+  pluginsLabel: string;
   hidden?: boolean;
   /** Build-time GitHub star counts keyed by repo URL; absent when unavailable. */
   stars?: Record<string, number>;
 }
 
-const { locale, index, title, entries, hidden, stars } = Astro.props;
+const { locale, index, title, apps, webs, plugins, pluginsLabel, hidden, stars } = Astro.props;
 
 /** Four per page, as requested, behind one static frame. */
 const PER_PAGE = 4;
 
-const pages: CollectionEntry<'projects'>[][] = [];
-for (let i = 0; i < entries.length; i += PER_PAGE) {
-  pages.push(entries.slice(i, i + PER_PAGE));
-}
+const paginate = <T,>(items: T[]): T[][] => {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += PER_PAGE) {
+    out.push(items.slice(i, i + PER_PAGE));
+  }
+  return out;
+};
 
-const paged = pages.length > 1;
 const pad = (n: number) => String(n).padStart(2, '0');
 const initials = (value: string) =>
   value
@@ -35,13 +41,38 @@ const initials = (value: string) =>
 
 const t =
   locale === 'es'
-    ? { prev: 'Proyectos anteriores', next: 'Proyectos siguientes', open: 'Ver detalle de' }
-    : { prev: 'Previous projects', next: 'Next projects', open: 'View details for' };
+    ? {
+        prev: 'Proyectos anteriores',
+        next: 'Proyectos siguientes',
+        open: 'Ver detalle de',
+        apps: 'Apps',
+        webs: 'Webs',
+      }
+    : {
+        prev: 'Previous projects',
+        next: 'Next projects',
+        open: 'View details for',
+        apps: 'Apps',
+        webs: 'Webs',
+      };
+
+const cardGroups = [
+  { key: 'apps' as const, label: t.apps, entries: apps, pages: paginate(apps) },
+  { key: 'webs' as const, label: t.webs, entries: webs, pages: paginate(webs) },
+];
+
+const tabs = [
+  { key: 'apps' as const, label: t.apps, count: apps.length },
+  { key: 'webs' as const, label: t.webs, count: webs.length },
+  { key: 'plugins' as const, label: pluginsLabel, count: plugins.length },
+].filter((tab) => tab.count > 0);
+
+const defaultTab = tabs[0]?.key ?? 'apps';
 ---
 
 {
-  entries.length > 0 && (
-    <section data-locale={locale} class="py-section" hidden={hidden || undefined}>
+  tabs.length > 0 && (
+    <section data-locale={locale} class="py-12 lg:py-section" hidden={hidden || undefined}>
       <div class="px-6">
         <p class="section-eyebrow" data-reveal>
           {index}
@@ -50,118 +81,173 @@ const t =
           {title}
         </h2>
 
-        {/* The two arrows are the tabber, one at each end above the grid. */}
-        {paged && (
-          <div class="mt-10 flex items-center justify-between gap-4">
-            <button
-              type="button"
-              data-project-prev
-              aria-label={t.prev}
-              class="flex size-11 items-center justify-center border border-hairline-strong bg-surface-1 text-ink transition-colors duration-200 hover:border-primary hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40"
-            >
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="size-5">
-                <path d="M14.5 18.25L8.25 12L14.5 5.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" />
-              </svg>
-            </button>
+        <div
+          class="mt-5 flex flex-nowrap overflow-x-auto border-b border-hairline"
+          role="tablist"
+          aria-label={title}
+          data-project-tabs
+        >
+          {tabs.map((tab) => {
+            const active = tab.key === defaultTab;
+            return (
+              <button
+                type="button"
+                role="tab"
+                id={`${locale}-projects-tab-${tab.key}`}
+                aria-controls={`${locale}-projects-panel-${tab.key}`}
+                aria-selected={active ? 'true' : 'false'}
+                tabindex={active ? '0' : '-1'}
+                data-project-tab={tab.key}
+                class="project-tab inline-flex min-h-10 shrink-0 items-center gap-2 px-3 py-2 font-mono text-xs uppercase tracking-[0.12em] sm:px-4"
+              >
+                <span>{tab.label}</span>
+                <span class="project-tab-count tabular-nums">{pad(tab.count)}</span>
+              </button>
+            );
+          })}
+        </div>
 
-            <p
-              class="font-mono text-[11px] tracking-[0.08em] text-ink-tertiary tabular-nums"
-              data-project-counter
+        {cardGroups.map((group) => {
+          if (group.entries.length === 0) return null;
+          const active = group.key === defaultTab;
+          const paged = group.pages.length > 1;
+          return (
+            <div
+              role="tabpanel"
+              id={`${locale}-projects-panel-${group.key}`}
+              aria-labelledby={`${locale}-projects-tab-${group.key}`}
+              data-project-panel={group.key}
+              hidden={!active || undefined}
             >
-              {pad(1)} / {pad(pages.length)}
-            </p>
+              <div>
+                {/* The two arrows are the tabber, one at each end above the grid. */}
+                {paged && (
+                  <div class="mt-4 flex items-center justify-between gap-4">
+                    <button
+                      type="button"
+                      data-project-prev
+                      aria-label={t.prev}
+                      class="flex size-10 items-center justify-center border border-hairline-strong bg-surface-1 text-ink transition-colors duration-200 hover:border-primary hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="size-5">
+                        <path d="M14.5 18.25L8.25 12L14.5 5.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" />
+                      </svg>
+                    </button>
 
-            <button
-              type="button"
-              data-project-next
-              aria-label={t.next}
-              class="flex size-11 items-center justify-center border border-hairline-strong bg-surface-1 text-ink transition-colors duration-200 hover:border-primary hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40"
-            >
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="size-5">
-                <path d="M9.5 18.25L15.75 12L9.5 5.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" />
-              </svg>
-            </button>
+                    <p
+                      class="font-mono text-[11px] tracking-[0.08em] text-ink-tertiary tabular-nums"
+                      data-project-counter
+                    >
+                      {pad(1)} / {pad(group.pages.length)}
+                    </p>
+
+                    <button
+                      type="button"
+                      data-project-next
+                      aria-label={t.next}
+                      class="flex size-10 items-center justify-center border border-hairline-strong bg-surface-1 text-ink transition-colors duration-200 hover:border-primary hover:bg-surface-2 disabled:pointer-events-none disabled:opacity-40"
+                    >
+                      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="size-5">
+                        <path d="M9.5 18.25L15.75 12L9.5 5.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+
+                {/*
+                  One static frame, pages swapped behind it. Every page is a child of the
+                  SAME grid cell, so they overlap and the container is always as tall as
+                  the fullest page. Inactive pages are hidden by visibility rather than
+                  `display: none`: out of layout they would stop contributing that height.
+                */}
+                <div class="mt-4 grid" data-project-pages>
+                  {group.pages.map((page, pageIndex) => (
+                    <div
+                      class="project-page col-start-1 row-start-1 grid gap-x-5 gap-y-6 sm:grid-cols-2"
+                      data-project-page={pageIndex}
+                      data-active={pageIndex === 0 ? 'true' : 'false'}
+                      aria-hidden={pageIndex === 0 ? 'false' : 'true'}
+                    >
+                      {page.map((entry) => (
+                        <button
+                          type="button"
+                          class="reveal-card group flex h-full flex-col text-left"
+                          data-reveal={active ? '' : undefined}
+                          data-card-open
+                          data-card-title={entry.data.title}
+                          data-card-desc={entry.data.description}
+                          data-card-meta={entry.data.stack.join(' · ')}
+                          data-card-stars={
+                            entry.data.repo && stars?.[entry.data.repo] !== undefined
+                              ? String(stars[entry.data.repo])
+                              : ''
+                          }
+                          data-card-cover={entry.data.logo ? `/apps/${entry.data.logo}/icon.webp` : ''}
+                          data-card-cover-mode={entry.data.logo ? 'single' : 'none'}
+                          data-card-monogram={initials(entry.data.title)}
+                          data-card-repo={entry.data.repo ?? ''}
+                          data-card-site={entry.data.url ?? ''}
+                          aria-label={`${t.open} ${entry.data.title}`}
+                        >
+                          {/*
+                            The square icon, not the horizontal lockup. A lockup is a ~4:1
+                            strip, so inside this box its wordmark rendered tiny - and the
+                            title is already text right below it. The icon also needs no
+                            dark/light variant, because it carries its own coloured tile.
+                          */}
+                          <div class="relative flex aspect-[3/2] items-center justify-center overflow-hidden border border-hairline bg-surface-1 transition-colors duration-200 group-hover:border-primary">
+                            {entry.data.logo ? (
+                              <img
+                                src={`/apps/${entry.data.logo}/icon.webp`}
+                                alt={`${entry.data.title} logo`}
+                                loading="lazy"
+                                class="h-[84%] w-auto max-w-[84%] object-contain"
+                              />
+                            ) : (
+                              <span class="font-mono text-3xl tracking-[0.1em] text-ink-tertiary" aria-hidden="true">
+                                {initials(entry.data.title)}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Stack chips take their accent from the active palette. The
+                              gutter reserves two rows so a card with one row of chips is
+                              not shorter than the card beside it. */}
+                          <ul class="mt-4 flex min-h-[60px] flex-wrap content-start gap-1.5">
+                            {entry.data.stack.map((tech) => (
+                              <li class="tag" style={`--tag-accent: ${tagHue(tech)}`}>
+                                {tech}
+                              </li>
+                            ))}
+                          </ul>
+
+                          <h3 class="mt-3 line-clamp-1 text-base font-medium text-ink transition-colors duration-200 group-hover:text-primary">
+                            {entry.data.title}
+                          </h3>
+                          <p class="mt-2 line-clamp-2 min-h-[46px] text-sm leading-relaxed text-ink-muted">
+                            {entry.data.description}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {plugins.length > 0 && (
+          <div
+            role="tabpanel"
+            id={`${locale}-projects-panel-plugins`}
+            aria-labelledby={`${locale}-projects-tab-plugins`}
+            data-project-panel="plugins"
+            hidden={defaultTab !== 'plugins' || undefined}
+          >
+            <Plugins locale={locale} entries={plugins} />
           </div>
         )}
-
-        {/*
-          One static frame, pages swapped behind it. Every page is a child of the
-          SAME grid cell, so they overlap and the container is always as tall as
-          the fullest page. Inactive pages are hidden by visibility rather than
-          `display: none`: out of layout they would stop contributing that height.
-        */}
-        <div class="mt-6 grid" data-project-pages>
-          {pages.map((page, pageIndex) => (
-            <div
-              class="project-page col-start-1 row-start-1 grid gap-x-6 gap-y-8 sm:grid-cols-2"
-              data-project-page={pageIndex}
-              data-active={pageIndex === 0 ? 'true' : 'false'}
-              aria-hidden={pageIndex === 0 ? 'false' : 'true'}
-            >
-              {page.map((entry) => (
-                <button
-                  type="button"
-                  class="reveal-card group flex h-full flex-col text-left"
-                  data-reveal
-                  data-card-open
-                  data-card-title={entry.data.title}
-                  data-card-desc={entry.data.description}
-                  data-card-meta={entry.data.stack.join(' · ')}
-                  data-card-stars={
-                    entry.data.repo && stars?.[entry.data.repo] !== undefined
-                      ? String(stars[entry.data.repo])
-                      : ''
-                  }
-                  data-card-cover={entry.data.logo ? `/apps/${entry.data.logo}/icon.webp` : ''}
-                  data-card-cover-mode={entry.data.logo ? 'single' : 'none'}
-                  data-card-monogram={initials(entry.data.title)}
-                  data-card-repo={entry.data.repo ?? ''}
-                  data-card-site={entry.data.url ?? ''}
-                  aria-label={`${t.open} ${entry.data.title}`}
-                >
-                  {/*
-                    The square icon, not the horizontal lockup. A lockup is a ~4:1
-                    strip, so inside this box its wordmark rendered tiny - and the
-                    title is already text right below it. The icon also needs no
-                    dark/light variant, because it carries its own coloured tile.
-                  */}
-                  <div class="relative flex aspect-[3/2] items-center justify-center overflow-hidden border border-hairline bg-surface-1 transition-colors duration-200 group-hover:border-primary">
-                    {entry.data.logo ? (
-                      <img
-                        src={`/apps/${entry.data.logo}/icon.webp`}
-                        alt={`${entry.data.title} logo`}
-                        loading="lazy"
-                        class="h-[84%] w-auto max-w-[84%] object-contain"
-                      />
-                    ) : (
-                      <span class="font-mono text-3xl tracking-[0.1em] text-ink-tertiary" aria-hidden="true">
-                        {initials(entry.data.title)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Stack chips take their accent from the active palette. The
-                      gutter reserves two rows so a card with one row of chips is
-                      not shorter than the card beside it. */}
-                  <ul class="mt-4 flex min-h-[60px] flex-wrap content-start gap-1.5">
-                    {entry.data.stack.map((tech) => (
-                      <li class="tag" style={`--tag-accent: ${tagHue(tech)}`}>
-                        {tech}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <h3 class="mt-3 line-clamp-1 text-lg font-medium text-ink transition-colors duration-200 group-hover:text-primary">
-                    {entry.data.title}
-                  </h3>
-                  <p class="mt-2 line-clamp-2 min-h-[46px] text-sm leading-relaxed text-ink-muted">
-                    {entry.data.description}
-                  </p>
-                </button>
-              ))}
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   )

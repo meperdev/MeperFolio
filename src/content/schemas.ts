@@ -23,6 +23,7 @@ export const experienceSchema = z.object({
 export const projectsSchema = z.object({
   title: z.string(),
   description: z.string(),
+  category: z.enum(['app', 'web']).default('app'),
   stack: z.array(z.string()),
   url: optionalUrl,
   /**
