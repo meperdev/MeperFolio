@@ -152,6 +152,16 @@ describe('structural invariants', () => {
     expect(index).not.toContain('#pagemode=thumbs');
   });
 
+  it('splits projects into Apps, Webs and Plugins tabs inside one deck section', () => {
+    expect(projects).toContain('role="tablist"');
+    expect(projects).toContain('role="tab"');
+    expect(projects).toContain('role="tabpanel"');
+    expect(projects).toContain('data-project-tabs');
+    expect(projects).toContain('data-project-tab=');
+    expect(projects).toContain('data-project-panel=');
+    expect(index).not.toContain('id="plugins"');
+  });
+
   it('advertises the browser identity assets in the head', () => {
     // The tab showed a blank globe because nothing in the head pointed at the
     // brand pack's MeperFolio icons; a missing favicon is invisible in a build.

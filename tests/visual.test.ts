@@ -183,9 +183,10 @@ describe.runIf(hasBrowser)('rendered appearance', () => {
       // One, not both: the other locale's copy sits in the DOM behind `hidden`,
       // has no layout and never loads its lazy covers. `[data-locale="es"]` is the
       // copy on screen by default.
-      // Scoped to `#projects` on purpose: the plugins section uses the same
-      // `data-project-page` pager, so an unscoped selector mixes both sections.
-      const cardsIn = '#projects [data-locale="es"] [data-project-page="0"] [data-card-open]';
+      // Scoped to `[data-project-panel="apps"]` on purpose: Webs and Plugins
+      // tabs use the same `data-project-page` pager inside `#projects`.
+      const cardsIn =
+        '#projects [data-locale="es"] [data-project-panel="apps"] [data-project-page="0"] [data-card-open]';
       // The reveal choreography scales cards down until they enter view, and the
       // second row never enters the observed viewport inside the snap deck, so
       // the test reveals them itself and then measures the resting geometry.
@@ -215,7 +216,7 @@ describe.runIf(hasBrowser)('rendered appearance', () => {
       );
 
       const cards = await page.$$eval(
-        '#projects [data-locale="es"] [data-project-page="0"] [data-card-open]',
+        cardsIn,
         (nodes) =>
           nodes.map((node) => {
             const card = node.getBoundingClientRect();
@@ -241,12 +242,11 @@ describe.runIf(hasBrowser)('rendered appearance', () => {
           }),
       );
 
-      // BrokerApp took VidMetrics Pulse's slot on the first page.
       expect(cards.map((card) => card.title)).toEqual([
         'MeperSoft',
         'Meper-Pos',
         'MeperBoard',
-        'BrokerApp',
+        'Hogar',
       ]);
 
       const span = (values: number[]) => Math.max(...values) - Math.min(...values);
@@ -284,14 +284,126 @@ describe.runIf(hasBrowser)('rendered appearance', () => {
   );
 
   it(
-    'lists Look\'n\'Feel as the first plugin',
+    'lists Look\'n\'Feel as the first plugin under the Plugins tab',
     async () => {
       const page = await openSite();
+      await page.evaluate(() => document.getElementById('projects')?.scrollIntoView());
+      await page.click('#projects [data-locale="es"] [data-project-tab="plugins"]');
+      await page.waitForFunction(
+        () =>
+          (document.querySelector('#projects [data-locale="es"] [data-project-panel="plugins"]') as HTMLElement)
+            ?.hidden === false,
+      );
       const titles = await page.$$eval(
-        '#plugins [data-locale="es"] [data-project-page="0"] [data-card-open]',
+        '#projects [data-locale="es"] [data-project-panel="plugins"] [data-project-page="0"] [data-card-open]',
         (cards) => cards.map((card) => (card as HTMLElement).dataset.cardTitle ?? ''),
       );
       expect(titles).toEqual(["Look'n'Feel", 'devstack', 'Work connection']);
+      await page.close();
+    },
+    TEST_TIMEOUT,
+  );
+
+  it(
+    'switches to the Webs tab, rendering A y G Negocios first with uniform opaque covers, and switches back',
+    async () => {
+      const page = await openSite();
+      await page.evaluate(() => document.getElementById('projects')?.scrollIntoView());
+      await page.click('#projects [data-locale="es"] [data-project-tab="webs"]');
+      await page.waitForFunction(
+        () =>
+          (document.querySelector('#projects [data-locale="es"] [data-project-panel="webs"]') as HTMLElement)
+            ?.hidden === false,
+      );
+
+      const cardsIn = '#projects [data-locale="es"] [data-project-panel="webs"] [data-card-open]';
+      await page.waitForFunction(
+        (selector) => {
+          const cards = Array.from(document.querySelectorAll(selector));
+          return (
+            cards.length === 2 &&
+            cards.every((card) => {
+              const img = card.querySelector('img');
+              return (
+                !!img &&
+                img.complete &&
+                img.naturalWidth > 0 &&
+                getComputedStyle(card).transform === 'none'
+              );
+            })
+          );
+        },
+        { timeout: 20_000 },
+        cardsIn,
+      );
+
+      const cards = await page.$$eval(cardsIn, (nodes) =>
+        nodes.map((node) => {
+          const card = node.getBoundingClientRect();
+          const cover = node.querySelector(':scope > div')!.getBoundingClientRect();
+          const img = node.querySelector('img');
+          const art = img?.getBoundingClientRect();
+          let holes = 0;
+          const corners: Record<string, number> = {};
+          if (img) {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0);
+            const data = ctx?.getImageData(0, 0, canvas.width, canvas.height).data ?? new Uint8ClampedArray();
+            const alphaAt = (x: number, y: number) => data[(y * canvas.width + x) * 4 + 3];
+            const inset = Math.round(canvas.width * 0.12);
+            for (let y = inset; y < canvas.height - inset; y += 1) {
+              for (let x = inset; x < canvas.width - inset; x += 1) {
+                if (alphaAt(x, y) < 255) holes += 1;
+              }
+            }
+            corners['top-left'] = alphaAt(0, 0);
+            corners['top-right'] = alphaAt(canvas.width - 1, 0);
+            corners['bottom-left'] = alphaAt(0, canvas.height - 1);
+            corners['bottom-right'] = alphaAt(canvas.width - 1, canvas.height - 1);
+          }
+          return {
+            title: (node as HTMLElement).dataset.cardTitle ?? '',
+            height: card.height,
+            cover: { height: cover.height },
+            art: art ? { height: art.height, width: art.width } : null,
+            natural: img ? { width: img.naturalWidth, height: img.naturalHeight } : null,
+            holes,
+            corners,
+          };
+        }),
+      );
+
+      expect(cards.map((card) => card.title)).toEqual([
+        'A y G Negocios Internacionales',
+        'Portfolio Personal',
+      ]);
+      expect(Math.max(...cards.map((c) => c.height)) - Math.min(...cards.map((c) => c.height))).toBeLessThanOrEqual(1);
+      for (const card of cards) {
+        expect(card.art).not.toBeNull();
+        expect(card.natural).not.toBeNull();
+        if (card.art && card.natural) {
+          const share = card.art.height / card.cover.height;
+          expect(share).toBeGreaterThanOrEqual(0.78);
+          expect(share).toBeLessThanOrEqual(0.9);
+          expect(Math.abs(card.art.width / card.art.height - card.natural.width / card.natural.height)).toBeLessThan(0.02);
+        }
+        expect(card.holes, `${card.title} has transparent interior pixels`).toBe(0);
+        for (const alpha of Object.values(card.corners)) {
+          expect(alpha).toBe(255);
+        }
+      }
+
+      await page.click('#projects [data-locale="es"] [data-project-tab="apps"]');
+      await page.waitForFunction(
+        () =>
+          (document.querySelector('#projects [data-locale="es"] [data-project-panel="apps"]') as HTMLElement)
+            ?.hidden === false &&
+          (document.querySelector('#projects [data-locale="es"] [data-project-panel="webs"]') as HTMLElement)
+            ?.hidden === true,
+      );
       await page.close();
     },
     TEST_TIMEOUT,
@@ -484,7 +596,7 @@ describe.runIf(hasBrowser)('rendered appearance', () => {
         Math.max(
           ...Array.from(
             document.querySelectorAll(
-              '#projects [data-locale="es"] [data-card-open], #plugins [data-locale="es"] [data-card-open]',
+              '#projects [data-locale="es"] [data-card-open]',
             ),
           ).map((el) => el.getBoundingClientRect().right),
         ),

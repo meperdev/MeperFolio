@@ -151,7 +151,7 @@ if (!reducedMotion && 'IntersectionObserver' in window) {
       });
       revealed.forEach((entry, i) => {
         const el = entry.target as HTMLElement;
-        el.style.setProperty('--reveal-delay', `${Math.min(i * 70, 320)}ms`);
+        el.style.setProperty('--reveal-delay', `${Math.min(i * 45, 180)}ms`);
         el.classList.add('is-visible');
         revealObserver.unobserve(el);
       });
@@ -206,6 +206,14 @@ if (deckSections.length > 0) {
   function computeActive() {
     const scroller = getDeckScroller();
     const isWindow = scroller === null;
+    const atBottom = isWindow
+      ? window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2
+      : scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2;
+    if (atBottom) {
+      setActiveSection(deckSections[deckSections.length - 1] ?? null);
+      return;
+    }
+
     const containerTop = isWindow ? 0 : scroller.getBoundingClientRect().top;
     const containerHeight = isWindow ? window.innerHeight : scroller.clientHeight;
     const bandTop = containerHeight * 0.25;
@@ -464,6 +472,7 @@ const isTypingTarget = (target: EventTarget | null): boolean =>
 
 document.addEventListener('keydown', (event: KeyboardEvent) => {
   if (isTypingTarget(event.target)) return;
+  if (event.target instanceof HTMLElement && event.target.closest('[role="tablist"]')) return;
   if (paletteOpen) return; // the palette owns the keyboard while open
   const key = event.key;
   const down = key === 'ArrowDown' || key === 'j';
@@ -499,7 +508,7 @@ document.addEventListener('keydown', (event: KeyboardEvent) => {
   scrollToSection(targetSection);
 });
 
-// --- Terminal typewriter: types a Python print in a loop --------------------
+// --- Terminal typewriter: types a Python print once on load ----------------
 // Both locale copies stay in sync, so a language toggle always shows the
 // already-typed result.
 const typed = 'print("I love cats")';
@@ -511,69 +520,75 @@ if (termEls.length > 0) {
     });
   } else {
     let index = 0;
-    let deleting = false;
-    const typeDelay = 85;
-    const holdDelay = 2400;
+    const typeDelay = 55;
     const paint = () => {
       termEls.forEach((el) => {
         el.textContent = typed.slice(0, index);
       });
     };
     const step = () => {
-      if (deleting) {
-        index -= 1;
-        paint();
-        if (index === 0) deleting = false;
-        window.setTimeout(step, typeDelay / 2);
-      } else if (index < typed.length) {
+      if (index < typed.length) {
         index += 1;
         paint();
         window.setTimeout(step, typeDelay);
-      } else {
-        window.setTimeout(() => {
-          deleting = true;
-          step();
-        }, holdDelay);
       }
     };
     step();
   }
 }
 
-// --- Mouse-reactive background glow (lerped follow) ---
-// Two brand-tinted layers: a small bright core that tracks the pointer closely
-// plus a wide soft halo that breathes with it. The rAF loop only runs while
-// the pointer is actually moving and parks itself once the glow settles, so
-// an idle page costs zero frames. Expressed against --color-primary so the
-// glow follows the active palette instead of pinning Linear's lavender.
-if (!reducedMotion) {
-  const glow = document.querySelector<HTMLElement>('.mouse-glow');
-  if (glow) {
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight / 2;
-    let x = targetX;
-    let y = targetY;
-    let rafId: number | null = null;
-    const render = () => {
-      x += (targetX - x) * 0.09;
-      y += (targetY - y) * 0.09;
-      const px = x.toFixed(1);
-      const py = y.toFixed(1);
-      glow.style.background = `radial-gradient(200px circle at ${px}px ${py}px, color-mix(in oklch, var(--color-primary) 10%, transparent), transparent 60%), radial-gradient(640px circle at ${px}px ${py}px, color-mix(in oklch, var(--color-primary) 7%, transparent), transparent 70%)`;
-      rafId =
-        Math.abs(targetX - x) > 0.5 || Math.abs(targetY - y) > 0.5
-          ? requestAnimationFrame(render)
-          : null;
-    };
-    window.addEventListener(
-      'pointermove',
-      (event: PointerEvent) => {
-        targetX = event.clientX;
-        targetY = event.clientY;
-        if (rafId === null) rafId = requestAnimationFrame(render);
-      },
-      { passive: true },
-    );
+// --- Project category tabs (Apps | Webs | Plugins) --------------------------
+// Synced across both locale copies so switching language keeps the active tab.
+const projectTabLists = Array.from(document.querySelectorAll<HTMLElement>('[data-project-tabs]'));
+const projectPanels = Array.from(document.querySelectorAll<HTMLElement>('[data-project-panel]'));
+
+if (projectTabLists.length > 0) {
+  const activateProjectTab = (tabKey: string): void => {
+    for (const list of projectTabLists) {
+      for (const tab of list.querySelectorAll<HTMLButtonElement>('[data-project-tab]')) {
+        const active = tab.dataset.projectTab === tabKey;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+      }
+    }
+    for (const panel of projectPanels) {
+      const active = panel.dataset.projectPanel === tabKey;
+      panel.hidden = !active;
+      if (active) {
+        for (const el of panel.querySelectorAll<HTMLElement>('[data-reveal]')) {
+          el.classList.add('is-visible');
+        }
+      }
+    }
+  };
+
+  for (const list of projectTabLists) {
+    const tabs = Array.from(list.querySelectorAll<HTMLButtonElement>('[data-project-tab]'));
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => {
+        const key = tab.dataset.projectTab;
+        if (key) activateProjectTab(key);
+      });
+    }
+
+    list.addEventListener('keydown', (event: KeyboardEvent) => {
+      const current = tabs.indexOf(document.activeElement as HTMLButtonElement);
+      if (current < 0) return;
+      let nextIndex = -1;
+      if (event.key === 'ArrowRight') nextIndex = (current + 1) % tabs.length;
+      else if (event.key === 'ArrowLeft') nextIndex = (current - 1 + tabs.length) % tabs.length;
+      else if (event.key === 'Home') nextIndex = 0;
+      else if (event.key === 'End') nextIndex = tabs.length - 1;
+      if (nextIndex < 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const target = tabs[nextIndex];
+      const key = target?.dataset.projectTab;
+      if (target && key) {
+        activateProjectTab(key);
+        target.focus();
+      }
+    });
   }
 }
 
